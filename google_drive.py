@@ -6,11 +6,13 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaFileUpload
 from googleapiclient.http import MediaIoBaseDownload
+from credential import load_creds
 import io
 
+SCOPES = ['https://www.googleapis.com/auth/drive']
 
-def update_file(token, filename, fileID):
-    creds, _ = google.auth.load_credentials_from_file(token)
+def update_file(token, oauth, filename, fileID):
+    creds = load_creds(token, oauth, SCOPES)
 
     try:
         # create drive api client
@@ -33,8 +35,8 @@ def update_file(token, filename, fileID):
     return file.get("id")
 
 
-def download_file(token, fileID):
-    creds, _ = google.auth.load_credentials_from_file(token)
+def download_file(token, oauth, fileID):
+    creds = load_creds(token, oauth, SCOPES)
 
     try:
         # create drive api client
@@ -78,6 +80,7 @@ if __name__ == "__main__":
         help="file ID in google driver",
     )
     parser.add_argument("--token", type=str)
+    parser.add_argument("--oauth", type=str, default=None)
     parser.add_argument("--filename", dest="filename", type=str, action="store")
 
     args = parser.parse_args()
@@ -85,9 +88,10 @@ if __name__ == "__main__":
     if args.subcommand == "update":
         update_file(
             token=args.token,
+            oauth=args.oauth,
             filename=args.filename,
             fileID=args.file_id,
         )
     elif args.subcommand == "download":
         with open(args.filename, "wb") as f:
-            f.write(download_file(token=args.token, fileID=args.file_id))
+            f.write(download_file(token=args.token, oauth=args.oauth, fileID=args.file_id))
